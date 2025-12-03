@@ -1,1 +1,37 @@
+name: Slither Security Scan
 
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  slither:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Slither
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install slither-analyzer
+
+      - name: Run Slither scan
+        run: |
+          slither . --json slither-report.json
+
+      - name: Check for high severity issues
+        run: |
+          if jq -e '.results[] | select(.severity=="High")' slither-report.json > /dev/null; then
+            echo "HIGH severity vulnerabilities found!"
+            cat slither-report.json
+            exit 1
+          else
+            echo "No high severity findings."
+          fi
