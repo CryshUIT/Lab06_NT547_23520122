@@ -6,23 +6,27 @@ contract BadVault {
     address public owner;
 
     constructor() {
-        owner = msg.sender;
+        owner = tx.origin;
     }
 
     function deposit() public payable {
-        balances[tx.origin] += msg.value; // Lỗi: Sử dụng tx.origin
+        balances[tx.origin] += msg.value; 
     }
 
     function withdraw() public {
         uint amount = balances[msg.sender];
-        (bool success, ) = msg.sender.call{value: amount}(""); // Lỗi: Unchecked return value (nếu version cũ) & Reentrancy
-        balances[msg.sender] = 0; // Lỗi: CEI pattern vi phạm
+        (bool success, ) = msg.sender.call{value: amount}("");
+        balances[msg.sender] = 0;
     }
-    
+
+    function drainAll() public {
+        payable(msg.sender).transfer(address(this).balance);
+    }
+
     function suicide() public {
-        selfdestruct(payable(owner)); // Lỗi: Dangerous & Deprecated
+        selfdestruct(payable(owner)); 
     }
-    
+
     function getBalance() public view returns (uint) {
         return address(this).balance;
     }
