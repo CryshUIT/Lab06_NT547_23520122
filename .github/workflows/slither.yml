@@ -26,11 +26,12 @@ jobs:
         run: |
           slither . --json slither-report.json || true
 
-      - name: Check for high severity issues
+      - name: Fail on High severity
         run: |
-          if jq -e '.results[] | select(.severity=="High")' slither-report.json >/dev/null; then
+          if jq -e '.results.detectors[] | select(.impact=="High")' slither-report.json >/dev/null; then
             echo "HIGH severity vulnerabilities detected!"
             exit 1
           else
-            echo "No high severity vulnerabilities."
+            echo "No High impact issues found."
           fi
+
